@@ -1,19 +1,35 @@
 #!/bin/zsh
-# CPS 310 verification script scaffold for macOS.
-# Complete the TODO sections during ICA08.
+# Repeatable project checks for macOS.
+set -o pipefail
+cd "$(dirname "${0}")" || exit 1
 
 echo "Running project verification..."
-
-# TODO: Run the complete pytest suite with verbose output.
+if [[ -x .venv/bin/python ]]; then
+    .venv/bin/python -m pytest -v
+else
+    python3 -m pytest -v
+fi
+tests_ok=$?
 
 echo ""
 echo "Checking required files..."
-
-# TODO: Check whether requirements.txt exists and print a clear message.
-
-# TODO: Check whether config.json exists and print a clear message.
+files_ok=0
+for required_file in requirements.txt config.json; do
+    if [[ -f "$required_file" ]]; then
+        echo "$required_file found."
+    else
+        echo "$required_file is missing."
+        files_ok=1
+    fi
+done
 
 echo ""
 echo "Checking Git status..."
+git status --short
+git_ok=$?
 
-# TODO: Display compact Git status.
+if (( tests_ok != 0 || files_ok != 0 || git_ok != 0 )); then
+    echo "Verification FAILED."
+    exit 1
+fi
+echo "Verification PASSED."
